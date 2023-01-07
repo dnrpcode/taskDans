@@ -1,5 +1,5 @@
 //!For edit this file please confirm dani
-import { Dimensions } from 'react-native'
+import {Dimensions} from 'react-native';
 
 export const windowWidth = Dimensions.get('window').width;
 export const windowHeight = Dimensions.get('window').height;
@@ -12,10 +12,10 @@ let heightFigma = 896;
 export const HIpSe1 = 568; // height iPhone SE (1st generation)
 export const WIpSe1 = 320; // width iPhone SE (1st generation)
 
-export const responsiveWidth = (width) => {
-  return windowWidth * width / widthFigma;
-}
+export const responsiveWidth = width => {
+  return (windowWidth * width) / widthFigma;
+};
 
-export const responsiveHeight = (height) => {
-  return windowHeight * height / heightFigma;
-}
+export const responsiveHeight = height => {
+  return (windowHeight * height) / heightFigma;
+};

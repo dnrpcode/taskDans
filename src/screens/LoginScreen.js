@@ -1,78 +1,66 @@
-import { Alert, StyleSheet, Text, View, TouchableOpacity } from 'react-native'
-import React from 'react'
-import { responsiveHeight, responsiveWidth, windowWidth } from '../Utils/ResponsiveUI';
-import { Colors } from '../Constants/Colors';
-import { dummySchedule, emailUser, passwordUser } from '../Constants/GlobalConstants';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Notifications from '../Utils/Notifications';
-import { useFormik } from "formik";
-import TextinputLogin from '../Components/Textinput/TextinputLogin';
-import { LoginSchema } from '../Utils/UtilsGlobal';
+import {Alert, StyleSheet, Text, View, TouchableOpacity} from 'react-native';
+import React, {useEffect} from 'react';
+import {
+  responsiveHeight,
+  responsiveWidth,
+  windowWidth,
+} from '../Utils/ResponsiveUI';
+import {Colors} from '../Constants/Colors';
+import {
+  GoogleSignin,
+  GoogleSigninButton,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
+import {GOOGLE_ID, GOOGLE_IOS_CLIENT_ID} from '../Constants/Config';
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen({navigation}) {
+  const handleSubmit = () => {
+    navigation.navigate('Home');
+  };
 
-  const {
-    handleChange,
-    handleSubmit,
-    handleBlur,
-    values,
-    errors,
-    touched
-  } = useFormik({
-    validationSchema: LoginSchema,
-    initialValues: { email: '', password: '' },
-    onSubmit: () => {
-      validateLogin()
+  useEffect(() => {
+    GoogleSignin.configure({
+      webClientId: GOOGLE_ID,
+      iosClientId: GOOGLE_IOS_CLIENT_ID,
+    });
+  }, []);
+
+  const signInGoogle = async () => {
+    try {
+      console.log('mamang');
+
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      let info = await GoogleSignin.signInSilently();
+
+      console.log('userInfo');
+    } catch (error) {
+      console.log('errornya nih', error);
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // user cancelled the login flow
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        // operation (e.g. sign in) is in progress already
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        // play services not available or outdated
+      } else {
+        // some other error happened
+      }
     }
-  });
-
-  const pushNotif = async () => {
-    const onceLogin = await AsyncStorage.getItem('onceLogin')
-    if (onceLogin) {
-      navigation.navigate('Home')
-    } else {
-      dummySchedule.map((x) => {
-        return Notifications.scheduleNotification(x.title, new Date(x.time))
-      })
-      await AsyncStorage.setItem('onceLogin', JSON.stringify(true))
-      navigation.navigate('Home')
-    }
-  }
-
-  const validateLogin = () => {
-    if (values.email !== emailUser || values.password !== passwordUser) {
-      Alert.alert("Mohon maaf", "Email / Password yang kamu masukan tidak cocok!")
-    } else {
-      pushNotif()
-    }
-  }
-
+  };
   return (
     <View style={styles.page}>
       <Text style={styles.title}>LoginScreen</Text>
-      <TextinputLogin
-        placeholder="Input Email"
-        onChangeText={handleChange('email')}
-        onBlur={handleBlur('email')}
-        error={errors.email}
-        touched={touched.email}
-        value={values.email}
-        keyboardType='email-address'
-      />
-      <TextinputLogin
-        placeholder="Input Password"
-        onChangeText={handleChange('password')}
-        onBlur={handleBlur('password')}
-        error={errors.password}
-        touched={touched.password}
-        value={values.password}
-        secureTextEntry={true}
-      />
       <TouchableOpacity onPress={handleSubmit} style={styles.button}>
-        <Text style={styles.txtBtn}>Login</Text>
+        <Text style={styles.txtBtn}>By pass</Text>
       </TouchableOpacity>
+      <GoogleSigninButton
+        style={{width: 192, height: 48}}
+        size={GoogleSigninButton.Size.Wide}
+        color={GoogleSigninButton.Color.Dark}
+        onPress={signInGoogle}
+      />
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -82,7 +70,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: windowWidth,
     paddingHorizontal: responsiveWidth(20),
-    backgroundColor: 'white'
+    backgroundColor: 'white',
   },
   button: {
     height: responsiveHeight(50),
@@ -90,7 +78,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 5
+    borderRadius: 5,
   },
   txtBtn: {
     fontSize: 18,
@@ -101,6 +89,6 @@ const styles = StyleSheet.create({
     fontSize: 30,
     marginBottom: responsiveHeight(50),
     fontWeight: '900',
-    color: Colors.primary
-  }
-})
+    color: Colors.primary,
+  },
+});

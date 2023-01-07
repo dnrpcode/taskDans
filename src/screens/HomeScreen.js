@@ -1,138 +1,168 @@
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { responsiveHeight, responsiveWidth, windowWidth } from '../Utils/ResponsiveUI'
-import { Calendar } from 'react-native-calendars'
-import { Colors } from '../Constants/Colors'
-import { dummySchedule } from '../Constants/GlobalConstants'
-import Notifications from '../Utils/Notifications'
-import NotifIcon from '../Assets/Icons/notif.png'
-import { filterSchedule, generateTime } from '../Utils/UtilsGlobal'
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {
+  responsiveHeight,
+  responsiveWidth,
+  windowWidth,
+} from '../Utils/ResponsiveUI';
+import SearchBar from '../Components/SearchBar';
+import Loader from '../Components/Loader';
 
-export default function HomeScreen({ navigation }) {
-    const [date, setDate] = useState('')
-    const [schedule, setSchedule] = useState(filterSchedule(dummySchedule));
+export default function HomeScreen({navigation}) {
+  const [job, setJob] = useState([]);
+  const [page, setPage] = useState(1);
+  const [filter, setFilter] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    const getNotification = () => {
-        Notifications.scheduleNotification("Try Notification!", new Date(Date.now()))
+  const getPosistion = async (param = '', isFilter = false) => {
+    setLoading(true);
+    const uri =
+      'http://dev3.dansmultipro.co.id/api/recruitment/positions.json?' +
+      param +
+      '&page=' +
+      page;
+
+    let response = await fetch(uri);
+    setLoading(false);
+
+    let json = await response.json();
+    console.log('log data', uri, json);
+
+    if (isFilter) {
+      setFilter(true);
+      if (json.length > 0) {
+        setJob(json);
+      } else {
+        setJob([]);
+      }
+      return;
     }
 
-    const selectDay = (d) => {
-        setDate(d)
-        setSchedule(filterSchedule(dummySchedule, new Date(d.timestamp)))
+    if (json.length > 0) {
+      setJob(job.concat(json));
     }
+  };
 
+  const isCloseToBottom = ({layoutMeasurement, contentOffset, contentSize}) => {
+    const paddingToBottom = 20;
     return (
-        <View style={styles.page}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-                <View style={styles.scroll}>
-                    <View style={styles.conCal}>
-                        <Calendar
-                            onDayPress={selectDay}
-                            initialDate={date}
-                            style={{ margin: responsiveWidth(15) }}
-                            theme={{
-                                selectedDayBackgroundColor: Colors.primary,
-                                indicatorColor: Colors.primary,
-                                todayTextColor: Colors.primary,
-                                arrowColor: Colors.primary
-                            }}
-                            markedDates={{
-                                container: {
-                                    backgroundColor: 'green'
-                                },
-                            }}
-                        />
+      layoutMeasurement.height + contentOffset.y >=
+      contentSize.height - paddingToBottom
+    );
+  };
+
+  useEffect(() => {
+    getPosistion();
+  }, []);
+
+  function getPositionByPage() {
+    getPosistion();
+    setPage(page + 1);
+  }
+
+  function onFilter(pr) {
+    setPage(1);
+    console.log(pr, 'ini param');
+    setFilter(pr);
+    getPosistion(pr, true);
+  }
+
+  return (
+    <View style={styles.page}>
+      <Loader visibility={loading} />
+      <SearchBar _onFilter={onFilter} />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={500}
+        onScroll={({nativeEvent}) => {
+          if (isCloseToBottom(nativeEvent)) {
+            getPositionByPage();
+          }
+        }}>
+        <View style={styles.content}>
+          <Text style={styles.title}>List Schedule</Text>
+          {job &&
+            job?.map(
+              (x, i) =>
+                x && (
+                  <TouchableOpacity
+                    style={styles.conSchdl}
+                    key={i}
+                    onPress={() => navigation.navigate('JobDetail', {data: x})}>
+                    <Image source={{uri: x.company_logo}} style={styles.logo} />
+                    <View style={styles.conText}>
+                      <Text style={styles.titleJob}>{x.title}</Text>
+                      <Text style={styles.descJob}>{x.company}</Text>
+                      <Text style={styles.descJob}>{x.location}</Text>
                     </View>
-                    <Text style={styles.title}>List Schedule</Text>
-                    {schedule?.map((x, i) => (
-                        <View style={styles.conSchdl} key={i}>
-                            <Text style={styles.titleSchdl}>{x.title}</Text>
-                            <Text style={styles.timeSchl}>{generateTime(x.time)}</Text>
-                        </View>
-                    ))}
-                </View>
-            </ScrollView>
-            <TouchableOpacity onPress={getNotification} style={styles.btnNotif}>
-                <Image source={NotifIcon} style={styles.iconNotif}/>
-            </TouchableOpacity>
+                    <Text style={styles.titleJob}>{'>'}</Text>
+                  </TouchableOpacity>
+                ),
+            )}
         </View>
-    )
+      </ScrollView>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    page: {
-        flex: 1,
-        backgroundColor: 'white',
+  page: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
+  scroll: {
+    alignItems: 'center',
+    paddingHorizontal: responsiveWidth(20),
+    paddingVertical: responsiveHeight(80),
+  },
+  content: {
+    paddingHorizontal: responsiveWidth(20),
+  },
+  title: {
+    fontSize: 20,
+    marginVertical: responsiveHeight(40),
+    alignSelf: 'flex-start',
+    color: 'black',
+    fontWeight: '700',
+  },
+  conSchdl: {
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
     },
-    scroll: {
-        alignItems: 'center',
-        paddingHorizontal: responsiveWidth(20),
-        paddingVertical: responsiveHeight(80)
-    },
-    title: {
-        fontSize: 20,
-        marginVertical: responsiveHeight(40),
-        alignSelf: 'flex-start',
-        color: 'black',
-        fontWeight: '700',
-    },
-    conSchdl: {
-        borderRadius: 8,
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-        width: '100%',
-        backgroundColor: 'white',
-        height: responsiveHeight(60),
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexDirection: 'row',
-        alignContent: 'center',
-        paddingHorizontal: responsiveWidth(20),
-        marginBottom: responsiveHeight(15)
-    },
-    conCal: {
-        borderRadius: 20,
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-        backgroundColor: 'white',
-        width: windowWidth - responsiveWidth(40),
-    },
-    titleSchdl: {
-        fontSize: 16,
-        color: 'black',
-        fontWeight: '700',
-    },
-    timeSchl: {
-        fontSize: 12,
-        fontWeight: '700',
-    },
-    btnNotif: {
-        zIndex: 2,
-        backgroundColor: Colors.primary,
-        width: responsiveHeight(60),
-        height: responsiveHeight(60),
-        borderRadius: responsiveHeight(30),
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'absolute',
-        bottom: responsiveHeight(20),
-        alignSelf: 'center'
-    },
-    iconNotif: {
-        height: responsiveHeight(25), 
-        width: responsiveHeight(25), 
-        resizeMode: 'contain'
-    }
-})
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    alignContent: 'center',
+    padding: responsiveWidth(20),
+    marginBottom: responsiveHeight(15),
+  },
+  titleJob: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  descJob: {
+    fontSize: 12,
+    marginTop: responsiveHeight(5),
+  },
+  logo: {
+    height: responsiveHeight(50),
+    width: responsiveHeight(50),
+  },
+  conText: {
+    width: windowWidth * 0.5,
+  },
+});
