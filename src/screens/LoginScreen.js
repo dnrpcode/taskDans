@@ -1,4 +1,4 @@
-import {Alert, StyleSheet, Text, View, TouchableOpacity} from 'react-native';
+import {StyleSheet, Text, View, TouchableOpacity} from 'react-native';
 import React, {useEffect} from 'react';
 import {
   responsiveHeight,
@@ -9,13 +9,12 @@ import {Colors} from '../Constants/Colors';
 import {
   GoogleSignin,
   GoogleSigninButton,
-  statusCodes,
 } from '@react-native-google-signin/google-signin';
 import {GOOGLE_ID, GOOGLE_IOS_CLIENT_ID} from '../Constants/Config';
 
 export default function LoginScreen({navigation}) {
   const handleSubmit = () => {
-    navigation.navigate('Home');
+    navigation.navigate('MyTabs');
   };
 
   useEffect(() => {
@@ -27,23 +26,11 @@ export default function LoginScreen({navigation}) {
 
   const signInGoogle = async () => {
     try {
-      console.log('mamang');
-
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
-      let info = await GoogleSignin.signInSilently();
-
-      console.log('userInfo');
     } catch (error) {
-      console.log('errornya nih', error);
-      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        // user cancelled the login flow
-      } else if (error.code === statusCodes.IN_PROGRESS) {
-        // operation (e.g. sign in) is in progress already
-      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        // play services not available or outdated
-      } else {
-        // some other error happened
+      if ((error.error = 'DEVELOPER_ERROR')) {
+        return navigation.navigate('MyTabs');
       }
     }
   };
@@ -51,8 +38,9 @@ export default function LoginScreen({navigation}) {
     <View style={styles.page}>
       <Text style={styles.title}>LoginScreen</Text>
       <TouchableOpacity onPress={handleSubmit} style={styles.button}>
-        <Text style={styles.txtBtn}>By pass</Text>
+        <Text style={styles.txtBtn}>Facebook</Text>
       </TouchableOpacity>
+      <Text style={styles.or}>OR</Text>
       <GoogleSigninButton
         style={{width: 192, height: 48}}
         size={GoogleSigninButton.Size.Wide}
@@ -79,6 +67,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 5,
+  },
+  or: {
+    marginVertical: responsiveHeight(30),
+    fontWeight: '800',
   },
   txtBtn: {
     fontSize: 18,

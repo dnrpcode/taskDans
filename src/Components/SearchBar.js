@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {
   Button,
+  Image,
   StyleSheet,
   Switch,
   Text,
@@ -35,9 +36,17 @@ const SearchBar = ({_onFilter}) => {
           onChangeText={setSearch}
           value={search}
           placeholder="Search"
+          onSubmitEditing={_applyFilter}
         />
         <TouchableOpacity onPress={() => setShowFilter(!showFilter)}>
-          <Text style={styles.arrow}>{showFilter ? '^' : '>'}</Text>
+          <Image
+            source={
+              showFilter
+                ? require('../Assets/Icons/chevron-up.png')
+                : require('../Assets/Icons/chevron-down.png')
+            }
+            style={styles.arrow}
+          />
         </TouchableOpacity>
       </View>
       {showFilter && (
@@ -80,7 +89,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   arrow: {
-    fontSize: responsiveHeight(45),
+    width: 30,
+    height: 30,
+    marginRight: 10,
   },
   filter: {
     borderWidth: 1,

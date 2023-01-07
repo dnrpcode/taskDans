@@ -1,5 +1,4 @@
 import {
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,30 +13,30 @@ import {
 } from '../Utils/ResponsiveUI';
 import SearchBar from '../Components/SearchBar';
 import Loader from '../Components/Loader';
+import Logo from '../Components/Logo';
 
 export default function HomeScreen({navigation}) {
   const [job, setJob] = useState([]);
   const [page, setPage] = useState(1);
-  const [filter, setFilter] = useState('');
   const [loading, setLoading] = useState(false);
+  const [paramFilter, setParamFilter] = useState('');
 
   const getPosistion = async (param = '', isFilter = false) => {
     setLoading(true);
     const uri =
       'http://dev3.dansmultipro.co.id/api/recruitment/positions.json?' +
-      param +
+      (param || paramFilter || '') +
       '&page=' +
-      page;
-
+      (isFilter ? '1' : page);
     let response = await fetch(uri);
     setLoading(false);
 
+    console.log('uri', uri);
     let json = await response.json();
-    console.log('log data', uri, json);
 
     if (isFilter) {
-      setFilter(true);
       if (json.length > 0) {
+        setPage(page + 1);
         setJob(json);
       } else {
         setJob([]);
@@ -68,9 +67,10 @@ export default function HomeScreen({navigation}) {
   }
 
   function onFilter(pr) {
-    setPage(1);
-    console.log(pr, 'ini param');
-    setFilter(pr);
+    if (pr !== paramFilter) {
+      setPage(1);
+    }
+    setParamFilter(pr);
     getPosistion(pr, true);
   }
 
@@ -96,7 +96,7 @@ export default function HomeScreen({navigation}) {
                     style={styles.conSchdl}
                     key={i}
                     onPress={() => navigation.navigate('JobDetail', {data: x})}>
-                    <Image source={{uri: x.company_logo}} style={styles.logo} />
+                    <Logo uri={x.company_logo} />
                     <View style={styles.conText}>
                       <Text style={styles.titleJob}>{x.title}</Text>
                       <Text style={styles.descJob}>{x.company}</Text>
@@ -157,10 +157,6 @@ const styles = StyleSheet.create({
   descJob: {
     fontSize: 12,
     marginTop: responsiveHeight(5),
-  },
-  logo: {
-    height: responsiveHeight(50),
-    width: responsiveHeight(50),
   },
   conText: {
     width: windowWidth * 0.5,

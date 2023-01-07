@@ -1,4 +1,4 @@
 export const Colors = {
-  primary: '#8977ff',
+  primary: 'blue',
   error: '#FF5A5F',
 };

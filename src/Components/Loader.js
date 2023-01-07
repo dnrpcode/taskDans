@@ -11,7 +11,7 @@ const Loader = ({visibility}) => {
           justifyContent: 'center',
           alignItems: 'center',
         }}>
-        <ActivityIndicator size={50}/>
+        <ActivityIndicator size={50} />
       </View>
     </Modal>
   );

@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Image,
   Linking,
   ScrollView,
   StyleSheet,
@@ -8,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Logo from '../Components/Logo';
 import TextHTML from '../Components/TextHTML';
 import {
   responsiveHeight,
@@ -23,7 +23,7 @@ export default function JobDetail(props) {
         <View style={styles.content}>
           <Text style={styles.title}>Company</Text>
           <View style={styles.card}>
-            <Image source={{uri: data.company_logo}} style={styles.logo} />
+            <Logo uri={data.company_logo} />
             <View style={styles.conText}>
               <Text style={styles.titleJob}>{data.title}</Text>
               <Text style={styles.descJob}>{data.company}</Text>
@@ -106,10 +106,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: responsiveHeight(5),
     color: 'blue',
-  },
-  logo: {
-    height: responsiveHeight(50),
-    width: responsiveHeight(50),
   },
   conText: {
     width: windowWidth * 0.5,
